@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    table {
+      border-collapse: none;
+    }
+
+    td {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+
+<body>
+  <section>
+    <h1> Prices in USD </h1>
+    <table id="crypto-prices"></table>
+  </section>
+  <script>
+
+    function generateTableRows(currencies) { // currencies: [{ id: "bitcoin", priceUsd: 123 }, { id: "ethereum", priceUsd: 234 }]
+      for (let c = 0; c < currencies.length; c++) {
+        const row = document.createElement('tr')
+        const currencyColumn = document.createElement('td')
+        const priceColumn = document.createElement('td')
+        currencyColumn.innerHTML = currencies[c].id
+        currencyColumn.setAttribute("id", currencies[c].id + '-currency')
+        priceColumn.setAttribute("id", currencies[c].id + '-price')
+        priceColumn.innerHTML = currencies[c].priceUsd + " USD"
+        row.appendChild(currencyColumn)
+        row.appendChild(priceColumn)
+        document.getElementById("crypto-prices").appendChild(row)
+      }
+    }
+
+    function updateCryptoTable(currencies) { // currencies: { "bitcoin": 1234, "ethereum": 13 }
+      const currenciesUpdated = Object.keys(currencies)
+      for (let i = 0; i < currenciesUpdated.length; i++) {
+        const id = currenciesUpdated[i] + "-price"
+        const price = currencies[currenciesUpdated[i]] + " USD"
+        document.getElementById(id).innerHTML = price
+      }
+    }
+
+    function fetchCryptoPrices() {
+      /* Using Fetch API, complete this method to fetch the crypto prices (bitcoin,ethereum,monero,litecoin) from Coincap API.
+      Then if the request is successful, call the `generateTableRows` method to generate the table that displays the currencies and provide the appropriate data.
+      Otherwise, log the error into the console. */
+      // TODO
+
+      const fetchPromise = fetch('https://api.coincap.io/v2/assets?ids=bitcoin,ethereum,monero,litecoin')
+      fetchPromise.then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`)
+        }
+        return response.json();
+      })
+        .then((datas) => {
+          const currencies = datas;
+          generateTableRows(currencies.data);
+          
+        }).catch((error) => {
+
+          console.log(error)
+        })
+    }
+
+
+    function connectToCoincapAPI() {
+      /* Using Websocket, complete this method to fetch the crypto prices (bitcoin,ethereum,monero,litecoin) from Coincap API in real time.
+      Then if the connection is successful, call the `updateCryptoTable` method whenever an update is received to update the table that displays the currencies and provide the appropriate data.
+      Otherwise, log the error into the console. */
+      //TODO
+      const pricesWs = new WebSocket('wss://ws.coincap.io/prices?assets=bitcoin,ethereum,monero,litecoin')
+
+      pricesWs.onmessage = function (msg) {
+        if(!msg.data){
+          console.log('No data')
+        }
+        updateCryptoTable(JSON.parse(msg.data));
+      }
+
+    }
+
+    window.onload = function () {
+      fetchCryptoPrices()
+      connectToCoincapAPI()
+    }
+  </script>
+</body>
+
+</html>
